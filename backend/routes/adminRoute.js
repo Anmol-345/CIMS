@@ -4,24 +4,16 @@ const AdminController = require("../controllers/adminController");
 const Auth = require("../middlewares/auth");
 
 // Public route
-router.post("/login", (req, res) => AdminController.login(req, res));
+router.post("/login", AdminController.login);
 
 // Admin-only routes
-router.get("/students", new Auth(["admin"]).handle, (req, res) =>
-  AdminController.getAllStudents(req, res)
-);
+router.get("/students", new Auth(["admin"]).handle, AdminController.getAllStudents);
 
-router.get("/students/:id", new Auth(["admin"]).handle, (req, res) =>
-  AdminController.getStudentById(req, res)
-);
+router.get("/students/:id", new Auth(["admin"]).handle, AdminController.getStudentById);
 
-router.patch("/students/:id", new Auth(["admin"]).handle, (req, res) =>
-  AdminController.updateStudent(req, res)
-);
+router.patch("/students/:id", new Auth(["admin"]).handle, AdminController.updateStudent);
 
-router.delete("/students/:id", new Auth(["admin"]).handle, (req, res) =>
-  AdminController.deleteStudent(req, res)
-);
+router.delete("/students/:id", new Auth(["admin"]).handle, AdminController.deleteStudent);
 
 router.patch(
   "/students/:id/approve",
@@ -29,7 +21,7 @@ router.patch(
   AdminController.approveStudent
 );
 
-router.delete(
+router.patch(
   "/students/:id/reject",
   new Auth(["admin"]).handle,
   AdminController.rejectStudent
