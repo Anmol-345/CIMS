@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/utils/adminAuth";
-import fetcher from "@/lib/api";
 
 export default function PendingApprovals() {
   const [pendingStudents, setPendingStudents] = useState([]);
@@ -31,7 +30,11 @@ export default function PendingApprovals() {
 
   const fetchPendingStudents = async () => {
     try {
-      const data = await fetcher("/admin/students");
+      const res = await fetch("http://localhost:5000/api/admin/students", {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
       const pending = data.filter((s) => s.accountStatus === "pending");
       setPendingStudents(pending);
     } catch (err) {
@@ -41,8 +44,9 @@ export default function PendingApprovals() {
 
   const handleApprove = async (id) => {
     try {
-      await fetcher(`/admin/students/${id}/approve`, {
+      await fetch(`http://localhost:5000/api/admin/students/${id}/approve`, {
         method: "PATCH",
+        credentials: "include",
       });
       setPendingStudents((prev) => prev.filter((s) => s._id !== id));
     } catch (err) {
@@ -52,8 +56,9 @@ export default function PendingApprovals() {
 
   const handleReject = async (id) => {
     try {
-      await fetcher(`/admin/students/${id}/reject`, {
+      await fetch(`http://localhost:5000/api/admin/students/${id}/reject`, {
         method: "PATCH",
+        credentials: "include",
       });
       setPendingStudents((prev) => prev.filter((s) => s._id !== id));
     } catch (err) {

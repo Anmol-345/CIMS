@@ -42,7 +42,7 @@ export default function FeesPage() {
     fetchCourses();
   }, []);
 
-  // Merge user courses with course info
+  // Map user courses with info
   const userCourses =
     user?.courses?.map((uc) => {
       const courseInfo = allCourses.find((ac) => ac._id === uc.course);
@@ -54,13 +54,12 @@ export default function FeesPage() {
       };
     }) || [];
 
-  // Calculate total unpaid fees
   const totalUnpaid = userCourses.reduce(
     (sum, course) => (!course.feePaid ? sum + course.fee : sum),
     0
   );
 
-  // Handle checkbox change
+  // Checkbox toggle
   const toggleCourseSelection = (courseId, feePaid) => {
     if (feePaid) return;
     setSelectedCourses((prev) =>
@@ -70,7 +69,6 @@ export default function FeesPage() {
     );
   };
 
-  // Update feesToPay whenever selection changes
   useEffect(() => {
     const total = selectedCourses.reduce((sum, id) => {
       const course = userCourses.find((c) => c.course === id);
@@ -79,7 +77,7 @@ export default function FeesPage() {
     setFeesToPay(total);
   }, [selectedCourses]);
 
-  // Handle "Pay Fees"
+  // Handle payment
   const handlePay = async () => {
     setLoading(true);
     setAlertMsg("");
@@ -109,15 +107,18 @@ export default function FeesPage() {
   return (
     <div className="px-4 py-6 sm:px-6 lg:px-8 flex justify-center">
       <div className="w-full max-w-3xl space-y-6">
-        <h2 className="text-2xl sm:text-3xl font-semibold text-center">Pay Your Fees</h2>
 
-        {/* Total Unpaid Fees */}
+        <h2 className="text-2xl sm:text-3xl font-semibold text-center">
+          Pay Your Fees
+        </h2>
+
+        {/* Total Unpaid */}
         <div className="p-4 border rounded-lg bg-muted flex justify-between items-center">
           <span className="text-lg font-semibold">Total Unpaid Fees:</span>
           <span className="text-lg font-bold text-red-600">₹{totalUnpaid}</span>
         </div>
 
-        {/* Selected Fees to Pay */}
+        {/* Selected Fees */}
         <div className="p-4 border rounded-lg bg-muted flex justify-between items-center">
           <span className="text-lg font-semibold">Fees to Pay:</span>
           <span className="text-lg font-bold text-primary">₹{feesToPay}</span>
@@ -141,7 +142,7 @@ export default function FeesPage() {
                 key={course.course}
                 className="flex flex-col sm:flex-row justify-between items-center py-2 border-b last:border-b-0 gap-2 sm:gap-0"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-[70%]">
                   <Checkbox
                     checked={selectedCourses.includes(course.course)}
                     onCheckedChange={() =>
@@ -149,9 +150,14 @@ export default function FeesPage() {
                     }
                     disabled={course.feePaid}
                   />
-                  <span className="truncate max-w-[200px]">{course.name}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium truncate">{course.name}</span>
+                    <span className="text-xs text-muted-foreground">{course.code}</span>
+                  </div>
                 </div>
-                <span>{course.feePaid ? "Paid" : `₹${course.fee}`}</span>
+                <span className="font-semibold">
+                  {course.feePaid ? "Paid" : `₹${course.fee}`}
+                </span>
               </div>
             ))
           )}
@@ -167,7 +173,9 @@ export default function FeesPage() {
 
           <DialogContent className="sm:max-w-[420px] w-full">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold">Razorpay Payment</DialogTitle>
+              <DialogTitle className="text-xl font-semibold">
+                Razorpay Payment
+              </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
@@ -196,62 +204,22 @@ export default function FeesPage() {
                   Select Payment Method
                 </p>
 
-                {/* UPI */}
-                <div
-                  onClick={() => setSelectedMethod("UPI")}
-                  className={`flex items-center justify-between p-2 border rounded-lg cursor-pointer transition 
-                    ${selectedMethod === "UPI" ? "bg-primary text-primary-foreground" : "hover:bg-secondary w-full"}
-                  `}
-                >
-                  <span className="font-medium">UPI</span>
-                  <span
-                    className={`text-xs ${
-                      selectedMethod === "UPI"
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground"
-                    }`}
+                {["UPI", "Card", "NetBanking"].map((method) => (
+                  <div
+                    key={method}
+                    onClick={() => setSelectedMethod(method)}
+                    className={`flex items-center justify-between p-2 border rounded-lg cursor-pointer transition 
+                      ${selectedMethod === method ? "bg-primary text-primary-foreground" : "hover:bg-secondary w-full"}
+                    `}
                   >
-                    GPay / PhonePe / Paytm
-                  </span>
-                </div>
-
-                {/* Card */}
-                <div
-                  onClick={() => setSelectedMethod("Card")}
-                  className={`flex items-center justify-between p-2 border rounded-lg cursor-pointer transition 
-                    ${selectedMethod === "Card" ? "bg-primary text-primary-foreground" : "hover:bg-secondary w-full"}
-                  `}
-                >
-                  <span className="font-medium">Card</span>
-                  <span
-                    className={`text-xs ${
-                      selectedMethod === "Card"
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    Visa / Mastercard / Rupay
-                  </span>
-                </div>
-
-                {/* Net Banking */}
-                <div
-                  onClick={() => setSelectedMethod("NetBanking")}
-                  className={`flex items-center justify-between p-2 border rounded-lg cursor-pointer transition 
-                    ${selectedMethod === "NetBanking" ? "bg-primary text-primary-foreground" : "hover:bg-secondary w-full"}
-                  `}
-                >
-                  <span className="font-medium">Net Banking</span>
-                  <span
-                    className={`text-xs ${
-                      selectedMethod === "NetBanking"
-                        ? "text-primary-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    All major banks
-                  </span>
-                </div>
+                    <span className="font-medium">{method}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {method === "UPI" && "GPay / PhonePe / Paytm"}
+                      {method === "Card" && "Visa / Mastercard / Rupay"}
+                      {method === "NetBanking" && "All major banks"}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
