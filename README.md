@@ -37,12 +37,12 @@ CIMS is a full-stack web application designed to streamline communication and in
 - **Icons**: [Lucide React](https://lucide.dev/guide/packages/lucide-react)
 - **Theming**: `next-themes` for light/dark mode.
 - **Linting**: [ESLint](https://eslint.org/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Language**: JavaScript (project contains primarily JavaScript/JSX with some TypeScript/TSX files)
 
 ### Backend
 - **Framework**: [Express.js](https://expressjs.com/)
 - **Database**: [MongoDB](https://www.mongodb.com/) with [Mongoose](https://mongoosejs.com/) ODM.
-- **Authentication**: [JSON Web Tokens (JWT)](https://jwt.io/) for secure authentication.
+- **Authentication**: [JSON Web Tokens (JWT)](https://jwt.io/) for secure authentication. Tokens are issued and set as an httpOnly cookie named `token` (expires in ~1 hour).
 - **Password Hashing**: [bcrypt](https://www.npmjs.com/package/bcrypt) for hashing passwords.
 - **Middleware**: [CORS](https://www.npmjs.com/package/cors), [cookie-parser](https://www.npmjs.com/package/cookie-parser).
 - **Development**: [Nodemon](https://nodemon.io/) for automatic server restarts.
@@ -86,7 +86,7 @@ Follow these instructions to get a copy of the project up and running on your lo
     ```bash
     npm start
     ```
-    The API will be running at `http://localhost:5000`.
+    The API will be running at `http://localhost:5000` (default). A simple health endpoint is available at `GET /health`.
 
 ### Frontend Setup
 
@@ -106,32 +106,29 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 ## API Endpoints
 
-
-
 The backend provides the following API endpoints, all prefixed with `/api`.
-
 
 
 ### Admin Routes (`/admin`)
 
-- `POST /login`: Login for administrators.
+- `POST /login`: Login for administrators. On success an httpOnly cookie named `token` is set (token expires in ~1h).
 
 - `GET /students`: Get a list of all students. (Admin only)
 
 - `GET /students/:id`: Get a single student by ID. (Admin only)
 
 - `PATCH /students/:id`: Update a student's information. (Admin only)
+  - Body can include: `name`, `email`, `courses` (array of course objects with marks and feePaid)
 
 - `DELETE /students/:id`: Delete a student. (Admin only)
 
 - `PATCH /students/:id/approve`: Approve a student's registration. (Admin only)
 
-- `DELETE /students/:id/reject`: Reject a student's registration. (Admin only)
+- `DELETE /students/:id/reject`: Reject a student's registration (deletes the student). (Admin only)
 
 - `GET /me`: Get the profile of the currently logged-in admin. (Admin only)
 
-- `GET /logout`: Logout the currently logged-in admin. (Admin only)
-
+- `GET /logout`: Logout the currently logged-in admin. (Admin only) — clears the `token` cookie.
 
 
 ### Course Routes (`/courses`)
@@ -147,7 +144,6 @@ The backend provides the following API endpoints, all prefixed with `/api`.
 - `DELETE /delete/:id`: Delete a course by ID. (Admin only)
 
 
-
 ### Notice Routes (`/notices`)
 
 - `GET /`: Get a list of all notices.
@@ -159,15 +155,18 @@ The backend provides the following API endpoints, all prefixed with `/api`.
 - `DELETE /delete/:id`: Delete a notice by ID. (Admin only)
 
 
-
 ### Student Routes (`/students`)
 
 - `POST /register`: Register a new student.
+  - Expected JSON body: `{ "name": "...", "email": "...", "password": "...", "courses": ["<courseId>", ...], "level": "<optional-level>" }`
+  - New students are created with `accountStatus: "pending"` and `role: "student"`. Each course entry is stored with `marks: null` and `feePaid: false`.
 
-- `POST /login`: Login for students.
+- `POST /login`: Login for students. On success an httpOnly cookie named `token` is set (token expires in ~1h).
 
 - `GET /me`: Get the profile of the currently logged-in student. (Student or Admin)
 
 - `PATCH /fees`: Update the fee status for the currently logged-in student. (Student only)
+  - Expected JSON body: `{ "courseId": "<courseId>", "feePaid": true|false }`
+  - The endpoint updates the matching course entry's `feePaid` flag for the authenticated student.
 
-- `GET /logout`: Logout the currently logged-in user (student or admin).
+- `GET /logout`: Logout the currently logged-in user (student or admin). Clears the `token` cookie.
